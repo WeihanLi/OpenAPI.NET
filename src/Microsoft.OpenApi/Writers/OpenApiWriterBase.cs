@@ -432,8 +432,8 @@ namespace Microsoft.OpenApi.Writers
             {
                 return;
             }
-            
-            var reference = schema.GetRef();
+
+            var reference = schema.GetRef() ?? schema.GetRecursiveRef();
             if (reference != null)
             {
                 if (!Settings.ShouldInlineReference())
@@ -447,7 +447,7 @@ namespace Microsoft.OpenApi.Writers
                     {
                         FindJsonSchemaRefs.ResolveJsonSchema(schema);
                     }
-                    if (!Settings.LoopDetector.PushLoop(schema))
+                    if (!Settings.LoopDetector.PushLoop(schema) || schema.GetRecursiveRef() != null)
                     {
                         Settings.LoopDetector.SaveLoop(schema);
                         WriteJsonSchemaReference(this, reference);

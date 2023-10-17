@@ -240,7 +240,7 @@ namespace Microsoft.OpenApi.Models
                 if (loops.TryGetValue(typeof(JsonSchema), out List<object> schemas))
                 {
                     var openApiSchemas = schemas.Cast<JsonSchema>().Distinct().ToList()
-                        .ToDictionary(k => k.GetRef().ToString());
+                        .ToDictionary(k => k.GetRef()?.ToString() ?? k.GetRecursiveRef()?.ToString());
 
                     foreach (var schema in openApiSchemas.Values.ToList())
                     {
