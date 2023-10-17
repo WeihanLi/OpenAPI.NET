@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. 
 
 using System;
@@ -56,6 +56,42 @@ namespace Microsoft.OpenApi.Extensions
         public static JsonSchemaBuilder Discriminator(this JsonSchemaBuilder builder, OpenApiDiscriminator discriminator)
         {
             builder.Add(new DiscriminatorKeyword(discriminator));
+            return builder;
+        }
+
+        public static JsonSchemaBuilder AddProperties(this JsonSchemaBuilder builder, Dictionary<string, JsonSchema> newProperties)
+        {
+            var currProps = builder.Build().GetProperties();
+
+            var result = new Dictionary<string, JsonSchema>();
+            foreach (var property in currProps)
+            {
+                result.Add(property.Key, property.Value);
+            }
+            foreach (var property in newProperties)
+            {
+                result.Add(property.Key, property.Value);
+            }
+            
+            builder.Properties(result);
+
+            return builder;
+        }
+        public static JsonSchemaBuilder UpdateProperties(this JsonSchemaBuilder builder, string name, JsonSchema newSchema)
+        {
+            var currProps = builder.Build().GetProperties();
+            var result = new Dictionary<string, JsonSchema>();
+            foreach (var property in currProps)
+            {
+                result.Add(property.Key, property.Value);
+            }
+            if (result.ContainsKey(name))
+            {
+                result[name] = newSchema;
+            }
+
+            builder.Properties(result);
+
             return builder;
         }
     }
@@ -207,5 +243,4 @@ namespace Microsoft.OpenApi.Extensions
             throw new NotImplementedException();
         }
     }
-
 }
