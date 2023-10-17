@@ -12,6 +12,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Writers;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.OpenApi.Extensions;
 
 namespace Microsoft.OpenApi.Tests.Writers
 {
@@ -526,11 +527,14 @@ components:
         private static OpenApiDocument CreateDocWithRecursiveSchemaReference()
         {
             var thingSchema = new JsonSchemaBuilder().Type(SchemaValueType.Object)
-                .Ref("#/definitions/thing")
-                .Properties(
-                ("children", new JsonSchemaBuilder().Ref("#/definitions/thing")),
-                ("related", new JsonSchemaBuilder().Type(SchemaValueType.Integer)))
-                .Build();
+                .Ref("#/definitions/thing");
+            
+            var childrenDictionary = new Dictionary<string, JsonSchema> { { "children", thingSchema.Build() } };
+            
+            var relatedSchema = new JsonSchemaBuilder().Type(SchemaValueType.Integer);
+            thingSchema.Properties(("related", relatedSchema.Build()));           
+            thingSchema = thingSchema.AddProperties(childrenDictionary);
+            thingSchema = thingSchema.UpdateProperties("children", thingSchema.Build());
 
             var doc = new OpenApiDocument()
             {
