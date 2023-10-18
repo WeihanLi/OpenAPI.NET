@@ -69,36 +69,7 @@ namespace Microsoft.OpenApi.Tests.Validations
             // Assert
             Assert.True(errors.Count() == 1);
         }
-
-        [Fact]
-        public void UnresolvedReferenceSchemaShouldNotBeValidated()
-        {
-            //// Arrange
-            //var sharedSchema = new JsonSchemaBuilder().Type(SchemaValueType.String).Ref("test").Build();
-
-            //OpenApiDocument document = new OpenApiDocument();
-            //document.Components = new OpenApiComponents()
-            //{
-            //    Schemas = new Dictionary<string, JsonSchema>()
-            //    {
-            //        ["test"] = sharedSchema
-            //    }
-            //};
-
-            //// Act
-            //var rules = new Dictionary<string, IList<ValidationRule>>()
-            //{
-            //    { typeof(JsonSchema).Name,
-            //        new List<ValidationRule>() { new AlwaysFailRule<JsonSchema>() }
-            //    }
-            //};
-
-            //var errors = document.Validate(new ValidationRuleSet(rules));
-
-            //// Assert
-            //Assert.True(!errors.Any());
-        }
-
+        
         [Fact]
         public void UnresolvedSchemaReferencedShouldNotBeValidated()
         {
