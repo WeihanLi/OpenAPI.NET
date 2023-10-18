@@ -221,6 +221,12 @@ namespace Microsoft.OpenApi.Services
             schema = builder.Build();
         }
 
+        /// <summary>
+        /// Visits an IBaseDocument instance
+        /// </summary>
+        /// <param name="document"></param>
+        public override void Visit(IBaseDocument document) { }
+
         private Dictionary<string, JsonSchema> ResolveJsonSchemas(IDictionary<string, JsonSchema> schemas)
         {
             var resolvedSchemas = new Dictionary<string, JsonSchema>();
@@ -243,14 +249,14 @@ namespace Microsoft.OpenApi.Services
         /// <returns></returns>
         public JsonSchema ResolveJsonSchemaReference(Uri reference, string description = null, string summary = null)
         {
-            var refUri = $"http://everything.json{reference.OriginalString.Split('#').LastOrDefault()}";
+            var refUri = $"https://everything.json{reference.OriginalString.Split('#').LastOrDefault()}";
             var resolvedSchema = (JsonSchema)SchemaRegistry.Global.Get(new Uri(refUri));
 
             if (resolvedSchema != null)
             {
                 var resolvedSchemaBuilder = new JsonSchemaBuilder();
 
-                foreach (var keyword in resolvedSchema?.Keywords)
+                foreach (var keyword in resolvedSchema.Keywords)
                 {
                     resolvedSchemaBuilder.Add(keyword);
 

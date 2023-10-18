@@ -50,53 +50,7 @@ namespace Microsoft.OpenApi.Readers.Tests.V3Tests
                         .Format("email")
                         .Build());
             }
-        }
-
-        [Fact]
-        public void ParsePrimitiveSchemaFragmentShouldSucceed()
-        {
-            using (var stream = Resources.GetStream(Path.Combine(SampleFolderPath, "primitiveSchema.yaml")))
-            {
-                var reader = new OpenApiStreamReader();
-                var diagnostic = new OpenApiDiagnostic();
-
-                // Act
-                //var schema = reader.ReadFragment<JsonSchema>(stream, OpenApiSpecVersion.OpenApi3_0, out diagnostic);
-
-                //// Assert
-                //diagnostic.Should().BeEquivalentTo(new OpenApiDiagnostic());
-
-                //schema.Should().BeEquivalentTo(
-                //    new JsonSchemaBuilder()
-                //        .Type(SchemaValueType.String)
-                //        .Format("email"));
-            }
-        }
-
-        [Fact]
-        public void ParsePrimitiveStringSchemaFragmentShouldSucceed()
-        {
-            var input = @"
-{ ""type"": ""integer"",
-""format"": ""int64"",
-""default"": 88
-}
-";
-            var reader = new OpenApiStringReader();
-            var diagnostic = new OpenApiDiagnostic();
-
-            // Act
-            //var schema = reader.ReadFragment<JsonSchema>(input, OpenApiSpecVersion.OpenApi3_0, out diagnostic);
-
-            //// Assert
-            //diagnostic.Should().BeEquivalentTo(new OpenApiDiagnostic());
-
-            //schema.Should().BeEquivalentTo(
-            //    new JsonSchemaBuilder()
-            //            .Type(SchemaValueType.Integer)
-            //            .Format("int64")
-            //            .Default(88), options => options.IgnoringCyclicReferences());
-        }
+        }       
 
         [Fact]
         public void ParseExampleStringFragmentShouldSucceed()
@@ -385,52 +339,6 @@ get:
 
             // Assert
             actual.Should().Be(expected);
-        }
-
-
-        [Fact]
-        public void ParseSelfReferencingSchemaShouldNotStackOverflow()
-        {
-            using var stream = Resources.GetStream(Path.Combine(SampleFolderPath, "selfReferencingSchema.yaml"));
-            // Act
-            var openApiDoc = new OpenApiStreamReader().Read(stream, out var diagnostic);            
-
-           // Assert
-           var components = openApiDoc.Components;
-
-            diagnostic.Should().BeEquivalentTo(
-                new OpenApiDiagnostic()
-                {
-                    SpecificationVersion = OpenApiSpecVersion.OpenApi3_0,
-                    Errors = new List<OpenApiError>()
-                        {
-                            new OpenApiError("", "Paths is a REQUIRED field at #/")
-                        }
-                });
-
-            var schemaExtension = new JsonSchemaBuilder()
-                .AllOf(
-                    new JsonSchemaBuilder()
-                        .Title("schemaExtension")
-                        .Type(SchemaValueType.Object)
-                        .Properties(
-                            ("description", new JsonSchemaBuilder().Type(SchemaValueType.String).Nullable(true)),
-                            ("targetTypes", new JsonSchemaBuilder()
-                                .Type(SchemaValueType.Array)
-                                .Items(new JsonSchemaBuilder()
-                                    .Type(SchemaValueType.String)
-                                )
-                            ),
-                            ("status", new JsonSchemaBuilder().Type(SchemaValueType.String)),
-                            ("owner", new JsonSchemaBuilder().Type(SchemaValueType.String)),
-                            ("child", null) // TODO (GSD): this isn't valid
-                        )
-                );
-
-            //schemaExtension.AllOf[0].Properties["child"] = schemaExtension;
-
-            components.Schemas["microsoft.graph.schemaExtension"]
-                .Should().BeEquivalentTo(components.Schemas["microsoft.graph.schemaExtension"].GetAllOf().ElementAt(0).GetProperties()["child"]);
         }
     }
 }

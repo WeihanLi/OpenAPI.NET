@@ -221,7 +221,9 @@ namespace Microsoft.OpenApi.Tests.Walkers
             locator.Locations.Where(l => l.StartsWith("referenceAt:")).Should().BeEquivalentTo(new List<string> {
                 "referenceAt: #/paths/~1/get/responses/200/content/application~1json/schema",
                 "referenceAt: #/paths/~1/get/responses/200/headers/test-header",
-                "referenceAt: #/components/schemas/derived/anyOf/0",
+                "referenceAt: #/components/schemas/derived",
+                "referenceAt: #/components/schemas/derived/anyOf",
+                "referenceAt: #/components/schemas/base",
                 "referenceAt: #/components/headers/test-header/schema"
             });
         }
@@ -289,9 +291,15 @@ namespace Microsoft.OpenApi.Tests.Walkers
             Locations.Add(this.PathString);
         }
 
+        public override void Visit(IBaseDocument document)
+        {
+            var schema = document as JsonSchema;
+            VisitJsonSchema(schema);
+        }
+
         public override void Visit(ref JsonSchema schema)
         {
-            Locations.Add(this.PathString);
+            VisitJsonSchema(schema);
         }
 
         public override void Visit(IList<OpenApiTag> openApiTags)
@@ -307,6 +315,18 @@ namespace Microsoft.OpenApi.Tests.Walkers
         public override void Visit(OpenApiServer server)
         {
             Locations.Add(this.PathString);
+        }
+
+        private void VisitJsonSchema(JsonSchema schema)
+        {
+            if (schema.GetRef() != null)
+            {
+                Locations.Add("referenceAt: " + this.PathString);
+            }
+            else
+            {
+                Locations.Add(this.PathString);
+            }
         }
     }
 }
