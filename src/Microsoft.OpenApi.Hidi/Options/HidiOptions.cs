@@ -58,6 +58,7 @@ namespace Microsoft.OpenApi.Hidi.Options
                 FilterByOperationIds = parseResult.GetValueForOption(options.FilterByOperationIdsOption),
                 FilterByTags = parseResult.GetValueForOption(options.FilterByTagsOption),
                 FilterByCollection = parseResult.GetValueForOption(options.FilterByCollectionOption),
+                FilterByRequestUrls = parseResult.GetValueForOption(options.FilterByRequestUrlsOption),
                 FilterByApiManifest = parseResult.GetValueForOption(options.ManifestOption)
             };
         }

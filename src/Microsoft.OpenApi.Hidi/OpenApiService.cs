@@ -21,7 +21,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.OData.Edm.Csdl;
 using Microsoft.OpenApi.ApiManifest;
-using Microsoft.OpenApi.ApiManifest.OpenAI;
+using Microsoft.OpenApi.ApiManifest.TypeExtensions;
 using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Hidi.Extensions;
 using Microsoft.OpenApi.Hidi.Formatters;
@@ -73,7 +73,7 @@ namespace Microsoft.OpenApi.Hidi
                 var apiDependency = await FindApiDependency(options.FilterOptions.FilterByApiManifest, logger, cancellationToken).ConfigureAwait(false);
                 if (apiDependency != null)
                 {
-                    options.OpenApi = apiDependency.ApiDescripionUrl;
+                    options.OpenApi = apiDependency.ApiDescriptionUrl;
                 }
 
                 // If Postman Collection is provided, load it
@@ -154,6 +154,13 @@ namespace Microsoft.OpenApi.Hidi
                 requestUrls = EnumerateJsonDocument(postmanCollection.RootElement, new());
                 logger.LogTrace("Finished fetching the list of paths and Http methods defined in the Postman collection.");
             }
+            else if (!string.IsNullOrWhiteSpace(options.FilterOptions?.FilterByRequestUrls))
+            {
+                // TODO: Add support for HTTP methods. Assume GET for now.
+                requestUrls = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+                foreach (var request in options.FilterOptions.FilterByRequestUrls.Split(','))
+                    requestUrls.Add(request, new() { "GET" });
+            }
             else
             {
                 requestUrls = new();
@@ -161,11 +168,12 @@ namespace Microsoft.OpenApi.Hidi
             }
 
             logger.LogTrace("Creating predicate from filter options.");
-            var predicate = FilterOpenApiDocument(options.FilterOptions.FilterByOperationIds,
-                                                    options.FilterOptions.FilterByTags,
-                                                    requestUrls,
-                                                    document,
-                                                     logger);
+            var predicate = FilterOpenApiDocument(options.FilterOptions?.FilterByOperationIds,
+                options.FilterOptions?.FilterByTags,
+                requestUrls,
+                document,
+                logger);
+
             if (predicate != null)
             {
                 var stopwatch = new Stopwatch();
@@ -345,9 +353,9 @@ namespace Microsoft.OpenApi.Hidi
                     walker.Walk(result.OpenApiDocument);
 
                     logger.LogTrace("Finished walking through the OpenApi document. Generating a statistics report..");
-                    #pragma warning disable CA2254
+#pragma warning disable CA2254
                     logger.LogInformation(statsVisitor.GetStatisticsReport());
-                    #pragma warning restore CA2254
+#pragma warning restore CA2254
                 }
             }
             catch (TaskCanceledException)
@@ -369,7 +377,7 @@ namespace Microsoft.OpenApi.Hidi
                 stopwatch.Start();
 
                 result = await new OpenApiStreamReader(new()
-                    {
+                {
                     LoadExternalRefs = inlineExternal,
                     BaseUrl = openApiFile.StartsWith("http", StringComparison.OrdinalIgnoreCase) ?
                         new(openApiFile) :
@@ -459,17 +467,17 @@ namespace Microsoft.OpenApi.Hidi
                         }
                         else
                         {
-                            paths.Add(path, new() {method});
+                            paths.Add(path, new() { method });
                         }
                     }
                     else
                     {
-                        EnumerateJsonDocument(item, paths);
+                        _ = EnumerateJsonDocument(item, paths);
                     }
                 }
                 else
                 {
-                    EnumerateJsonDocument(item, paths);
+                    _ = EnumerateJsonDocument(item, paths);
                 }
             }
 
@@ -569,7 +577,8 @@ namespace Microsoft.OpenApi.Hidi
                 using (logger.BeginScope("Creating diagram"))
                 {
                     // If output is null, create a HTML file in the user's temporary directory
-                    var sourceUrl = (string.IsNullOrEmpty(options.OpenApi), string.IsNullOrEmpty(options.Csdl)) switch {
+                    var sourceUrl = (string.IsNullOrEmpty(options.OpenApi), string.IsNullOrEmpty(options.Csdl)) switch
+                    {
                         (false, _) => options.OpenApi!,
                         (_, false) => options.Csdl!,
                         _ => throw new InvalidOperationException("No input file path or URL provided")
@@ -579,7 +588,7 @@ namespace Microsoft.OpenApi.Hidi
                         var tempPath = Path.GetTempPath() + "/hidi/";
                         if (!File.Exists(tempPath))
                         {
-                            Directory.CreateDirectory(tempPath);
+                            _ = Directory.CreateDirectory(tempPath);
                         }
 
                         var fileName = Path.GetRandomFileName();
@@ -596,7 +605,7 @@ namespace Microsoft.OpenApi.Hidi
                         using var process = new Process();
                         process.StartInfo.FileName = output.FullName;
                         process.StartInfo.UseShellExecute = true;
-                        process.Start();
+                        _ = process.Start();
 
                         return output.FullName;
                     }
@@ -721,7 +730,7 @@ namespace Microsoft.OpenApi.Hidi
             var apiDependency = await FindApiDependency(options.FilterOptions?.FilterByApiManifest, logger, cancellationToken).ConfigureAwait(false);
             if (apiDependency != null)
             {
-                options.OpenApi = apiDependency.ApiDescripionUrl;
+                options.OpenApi = apiDependency.ApiDescriptionUrl;
             }
 
             // Load OpenAPI document
@@ -746,18 +755,8 @@ namespace Microsoft.OpenApi.Hidi
             WriteOpenApi(options, OpenApiFormat.Json, OpenApiSpecVersion.OpenApi3_0, document, logger);
 
             // Create OpenAIPluginManifest from ApiDependency and OpenAPI document
-            var manifest = new OpenAIPluginManifest
-            {
-                NameForHuman = document.Info.Title,
-                DescriptionForHuman = document.Info.Description,
-                Api = new()
-                {
-                    Type = "openapi",
-                    Url = "./openapi.json"
-                }
-            };
-            manifest.NameForModel = manifest.NameForHuman;
-            manifest.DescriptionForModel = manifest.DescriptionForHuman;
+            var apiManifest = document.ToApiManifest(options.OpenApi);
+            var manifest = apiManifest.ToOpenAIPluginManifest(document, "logo-url", "legal-info-url", "./openapi.json");
 
             // Write OpenAIPluginManifest to Output folder
             var manifestFile = new FileInfo(Path.Combine(options.OutputFolder, "ai-plugin.json"));
@@ -765,6 +764,40 @@ namespace Microsoft.OpenApi.Hidi
             using var jsonWriter = new Utf8JsonWriter(file, new() { Indented = true });
             manifest.Write(jsonWriter);
             await jsonWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static async Task ApiManifestService(HidiOptions options, ILogger logger, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(options, nameof(options));
+            if (string.IsNullOrWhiteSpace(options.OpenApi))
+                throw new ArgumentException("Please input a file path or URL to an OpenApi document.");
+            if (string.IsNullOrWhiteSpace(options.OutputFolder))
+                throw new ArgumentException("Please input an output folder path.");
+
+            // Load OpenAPI document.
+            var document = await GetOpenApi(options, logger, options.MetadataVersion, cancellationToken).ConfigureAwait(false);
+            if (options.FilterOptions is not null)
+            {
+                // If Postman Collection is provided, load it
+                JsonDocument? postmanCollection = null;
+                if (!string.IsNullOrWhiteSpace(options.FilterOptions.FilterByCollection))
+                {
+                    using var collectionStream = await GetStream(options.FilterOptions.FilterByCollection, logger, cancellationToken).ConfigureAwait(false);
+                    postmanCollection = await JsonDocument.ParseAsync(collectionStream, cancellationToken: cancellationToken).ConfigureAwait(false);
+                }
+
+                document = ApplyFilters(options, logger, null, postmanCollection, document);
+            }
+
+            // Create ApiManifest from openApi document.
+            var apiManifest = document.ToApiManifest(options.OpenApi);
+
+            // Write ApiManifest to output folder.
+            var apiManifestFile = new FileInfo(Path.Combine(options.OutputFolder, "api-manifest.json"));
+            using var file = new FileStream(apiManifestFile.FullName, FileMode.Create);
+            using var writer = new Utf8JsonWriter(file, new() { Indented = true });
+            apiManifest.Write(writer);
+            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

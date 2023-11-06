@@ -23,6 +23,7 @@ namespace Microsoft.OpenApi.Hidi.Options
         public readonly Option<string> FilterByOperationIdsOption = new("--filter-by-operationids", "Filters OpenApiDocument by comma delimited list of OperationId(s) provided");
         public readonly Option<string> FilterByTagsOption = new("--filter-by-tags", "Filters OpenApiDocument by comma delimited list of Tag(s) provided. Also accepts a single regex.");
         public readonly Option<string> FilterByCollectionOption = new("--filter-by-collection", "Filters OpenApiDocument by Postman collection provided. Provide path to collection file.");
+        public readonly Option<string> FilterByRequestUrlsOption = new("--filter-by-requestUrls", "Filters OpenApiDocument by comma delimited list of RequestUrl(s).");
         public readonly Option<string> ManifestOption = new("--manifest", "Path to API manifest file to locate and filter an OpenApiDocument");
         public readonly Option<bool> InlineLocalOption = new("--inline-local", "Inline local $ref instances");
         public readonly Option<bool> InlineExternalOption = new("--inline-external", "Inline external $ref instances");
@@ -101,6 +102,21 @@ namespace Microsoft.OpenApi.Hidi.Options
                 ManifestOption,
                 OutputFolderOption,
                 CleanOutputOption,
+                LogLevelOption
+            };
+        }
+
+        public IReadOnlyList<Option> GetApiManifestCommandOptions()
+        {
+            return new List<Option>
+            {
+                OpenApiDescriptionOption,
+                OutputFolderOption,
+                CleanOutputOption,
+                FilterByOperationIdsOption,
+                FilterByTagsOption,
+                FilterByRequestUrlsOption,
+                FilterByCollectionOption,
                 LogLevelOption
             };
         }

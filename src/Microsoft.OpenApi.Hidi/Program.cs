@@ -40,14 +40,20 @@ namespace Microsoft.OpenApi.Hidi
             showCommand.AddOptions(commandOptions.GetShowCommandOptions());
             showCommand.Handler = new ShowCommandHandler(commandOptions);
 
+            var apiManifestCommand = new Command("apiManifest");
+            apiManifestCommand.Description = "Create an API manifest file from an OpenAPI or CSDL document [preview].";
+            apiManifestCommand.AddOptions(commandOptions.GetApiManifestCommandOptions());
+            apiManifestCommand.Handler = new ApiManifestCommandHandler(commandOptions);
+
             var pluginCommand = new Command("plugin");
-            pluginCommand.Description = "Create manifest files for an OpenAI plugin [preview]";
-            pluginCommand.AddOptions(commandOptions.GetPluginCommandOptions());
+            pluginCommand.Description = "Create manifest files for an OpenAI plugin [preview].";
+            pluginCommand.AddOptions(commandOptions.GetApiManifestCommandOptions());
             pluginCommand.Handler = new PluginCommandHandler(commandOptions);
 
             rootCommand.Add(showCommand);
             rootCommand.Add(transformCommand);
             rootCommand.Add(validateCommand);
+            rootCommand.Add(apiManifestCommand);
             rootCommand.Add(pluginCommand);
             return rootCommand;
         }
