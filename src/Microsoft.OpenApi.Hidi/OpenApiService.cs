@@ -144,29 +144,27 @@ namespace Microsoft.OpenApi.Hidi
 
         private static OpenApiDocument ApplyFilters(HidiOptions options, ILogger logger, ApiDependency? apiDependency, JsonDocument? postmanCollection, OpenApiDocument document)
         {
-            Dictionary<string, List<string>> requestUrls;
+            Dictionary<string, List<string>> requestUrls = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
             if (apiDependency != null)
-            {
                 requestUrls = GetRequestUrlsFromManifest(apiDependency);
-            }
             else if (postmanCollection != null)
             {
                 requestUrls = EnumerateJsonDocument(postmanCollection.RootElement, []);
                 logger.LogTrace("Finished fetching the list of paths and Http methods defined in the Postman collection.");
             }
-            else if (!string.IsNullOrWhiteSpace(options.FilterOptions?.FilterByRequestUrls))
+            else if (!string.IsNullOrWhiteSpace(options.FilterOptions?.FilterByPaths))
             {
-                // TODO: Add support for HTTP methods. Assume GET for now.
                 // TODO: Move this logic to the OpenAPI.Net library. See https://github.com/microsoft/OpenAPI.NET/issues/1468.
-                requestUrls = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
-                foreach (var request in options.FilterOptions.FilterByRequestUrls.Split(','))
-                    requestUrls.Add(request, ["GET"]);
+                foreach (var pathPattern in options.FilterOptions.FilterByPaths.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.RemoveEmptyEntries))
+                {
+                    string[] parts = pathPattern.Split('#', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.RemoveEmptyEntries);
+                    var path = parts[0];
+                    var methods = parts.Length > 1 ? [parts[1]] : new List<string> { "GET", "POST", "PATCH", "PUT", "DELETE", "HEAD", "CONNECT", "OPTIONS", "TRACE" };
+                    requestUrls.Add(path, methods);
+                }
             }
             else
-            {
-                requestUrls = [];
                 logger.LogTrace("No filter options provided.");
-            }
 
             logger.LogTrace("Creating predicate from filter options.");
             var predicate = FilterOpenApiDocument(options.FilterOptions?.FilterByOperationIds,
@@ -781,9 +779,10 @@ namespace Microsoft.OpenApi.Hidi
 
             // Load OpenAPI document.
             var document = await GetOpenApi(options, logger, options.MetadataVersion, cancellationToken).ConfigureAwait(false);
+
+            // Slice the OpenAPI document by filter options, if requested.
             if (options.FilterOptions is not null)
             {
-                // If Postman Collection is provided, load it
                 JsonDocument? postmanCollection = null;
                 if (!string.IsNullOrWhiteSpace(options.FilterOptions.FilterByCollection))
                 {
@@ -800,11 +799,11 @@ namespace Microsoft.OpenApi.Hidi
                 _ = Directory.CreateDirectory(options.OutputFolder);
                 options.Output = new(Path.Combine(options.OutputFolder, "openapi-subset.yaml"));
                 options.TerseOutput = true;
-                WriteOpenApi(options, OpenApiFormat.Yaml, OpenApiSpecVersion.OpenApi3_0, document, logger);
+                WriteOpenApi(options, OpenApiFormat.Yaml, TryParseOpenApiSpecVersion(document.Info.Version), document, logger);
             }
 
             // Create ApiManifest from openApi document.
-            var apiManifest = document.ToApiManifest(options.OpenApi, options.ApplicationName, options.ApiDependencyName);
+            var apiManifest = document.ToApiManifest(options.OpenApi, options.ApplicationName, options.ApiDependencyName, options.PublisherName, options.PublisherEmail);
 
             // Write ApiManifest to output folder.
             var apiManifestFile = new FileInfo(Path.Combine(options.OutputFolder, "api-manifest.json"));

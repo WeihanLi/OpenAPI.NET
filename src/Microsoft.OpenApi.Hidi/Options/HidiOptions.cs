@@ -29,6 +29,8 @@ namespace Microsoft.OpenApi.Hidi.Options
         public string? ApplicationName { get; set; }
         public string? ApiDependencyName { get; set; }
         public bool IncludeOpenApiSubset { get; set; }
+        public string? PublisherName { get; set; }
+        public string? PublisherEmail { get; set; }
         public FilterOptions FilterOptions { get; set; } = new();
 
         public HidiOptions(ParseResult parseResult, CommandOptions options)
@@ -59,12 +61,14 @@ namespace Microsoft.OpenApi.Hidi.Options
             ApplicationName = parseResult.GetValueForOption(options.ApplicationNameOption);
             ApiDependencyName = parseResult.GetValueForOption(options.ApiDependencyNameOption);
             IncludeOpenApiSubset = parseResult.GetValueForOption(options.IncludeOpenApiSubsetOption);
+            PublisherName = parseResult.GetValueForOption(options.PublisherNameOption);
+            PublisherEmail = parseResult.GetValueForOption(options.PublisherEmailOption);
             FilterOptions = new()
             {
                 FilterByOperationIds = parseResult.GetValueForOption(options.FilterByOperationIdsOption),
                 FilterByTags = parseResult.GetValueForOption(options.FilterByTagsOption),
                 FilterByCollection = parseResult.GetValueForOption(options.FilterByCollectionOption),
-                FilterByRequestUrls = parseResult.GetValueForOption(options.FilterByRequestUrlsOption),
+                FilterByPaths = parseResult.GetValueForOption(options.FilterByPathsOption),
                 FilterByApiManifest = parseResult.GetValueForOption(options.ManifestOption)
             };
         }

@@ -23,13 +23,15 @@ namespace Microsoft.OpenApi.Hidi.Options
         public readonly Option<string> FilterByOperationIdsOption = new("--filter-by-operationids", "Filters OpenApiDocument by comma delimited list of OperationId(s) provided");
         public readonly Option<string> FilterByTagsOption = new("--filter-by-tags", "Filters OpenApiDocument by comma delimited list of Tag(s) provided. Also accepts a single regex.");
         public readonly Option<string> FilterByCollectionOption = new("--filter-by-collection", "Filters OpenApiDocument by Postman collection provided. Provide path to collection file.");
-        public readonly Option<string> FilterByRequestUrlsOption = new("--filter-by-requestUrls", "Filters OpenApiDocument by comma delimited list of RequestUrl(s).");
+        public readonly Option<string> FilterByPathsOption = new("--filter-by-paths", "Filters OpenApiDocument by comma delimited list of paths.");
         public readonly Option<string> ManifestOption = new("--manifest", "Path to API manifest file to locate and filter an OpenApiDocument");
         public readonly Option<bool> InlineLocalOption = new("--inline-local", "Inline local $ref instances");
         public readonly Option<bool> InlineExternalOption = new("--inline-external", "Inline external $ref instances");
         public readonly Option<string> ApplicationNameOption = new("--application-name", "The name that uniquely identify the application to users of the API Manifest.");
         public readonly Option<string> ApiDependencyNameOption = new("--api-dependency-name", "The name the api to generate an API Manifest for.");
         public readonly Option<bool> IncludeOpenApiSubsetOption = new("--include-openapi-subset", "Include the sliced OpenAPI subset in the provided --output-folder.");
+        public readonly Option<string> PublisherNameOption = new("--publisher-name", "The name of the publisher of the API Manifest.");
+        public readonly Option<string> PublisherEmailOption = new("--publisher-email", "The email of the publisher of the API Manifest.");
 
         public CommandOptions()
         {
@@ -72,7 +74,9 @@ namespace Microsoft.OpenApi.Hidi.Options
                 FilterByTagsOption,
                 FilterByCollectionOption,
                 InlineLocalOption,
-                InlineExternalOption
+                InlineExternalOption,
+                PublisherNameOption,
+                PublisherEmailOption
             };
         }
 
@@ -81,7 +85,7 @@ namespace Microsoft.OpenApi.Hidi.Options
             return new List<Option>
             {
                 OpenApiDescriptionOption,
-                LogLevelOption,
+                LogLevelOption
             };
         }
 
@@ -118,11 +122,13 @@ namespace Microsoft.OpenApi.Hidi.Options
                 ApiDependencyNameOption,
                 OutputFolderOption,
                 CleanOutputOption,
-                IncludeOpenApiSubsetOption,
+                PublisherNameOption,
+                PublisherEmailOption,
                 FilterByOperationIdsOption,
                 FilterByTagsOption,
-                FilterByRequestUrlsOption,
+                FilterByPathsOption,
                 FilterByCollectionOption,
+                IncludeOpenApiSubsetOption,
                 LogLevelOption
             };
         }
