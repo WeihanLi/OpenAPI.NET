@@ -151,19 +151,20 @@ namespace Microsoft.OpenApi.Hidi
             }
             else if (postmanCollection != null)
             {
-                requestUrls = EnumerateJsonDocument(postmanCollection.RootElement, new());
+                requestUrls = EnumerateJsonDocument(postmanCollection.RootElement, []);
                 logger.LogTrace("Finished fetching the list of paths and Http methods defined in the Postman collection.");
             }
             else if (!string.IsNullOrWhiteSpace(options.FilterOptions?.FilterByRequestUrls))
             {
                 // TODO: Add support for HTTP methods. Assume GET for now.
+                // TODO: Move this logic to the OpenAPI.Net library. See https://github.com/microsoft/OpenAPI.NET/issues/1468.
                 requestUrls = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
                 foreach (var request in options.FilterOptions.FilterByRequestUrls.Split(','))
-                    requestUrls.Add(request, new() { "GET" });
+                    requestUrls.Add(request, ["GET"]);
             }
             else
             {
-                requestUrls = new();
+                requestUrls = [];
                 logger.LogTrace("No filter options provided.");
             }
 
@@ -467,7 +468,7 @@ namespace Microsoft.OpenApi.Hidi
                         }
                         else
                         {
-                            paths.Add(path, new() { method });
+                            paths.Add(path, [method]);
                         }
                     }
                     else
@@ -755,8 +756,10 @@ namespace Microsoft.OpenApi.Hidi
             WriteOpenApi(options, OpenApiFormat.Json, OpenApiSpecVersion.OpenApi3_0, document, logger);
 
             // Create OpenAIPluginManifest from ApiDependency and OpenAPI document
-            var apiManifest = document.ToApiManifest(options.OpenApi);
+            var apiManifest = document.ToApiManifest(options.OpenApi, "OpenAI-plugin");
+#pragma warning disable CA1849 // Call async methods when in an async method
             var manifest = apiManifest.ToOpenAIPluginManifest(document, "logo-url", "legal-info-url", "./openapi.json");
+#pragma warning restore CA1849 // Call async methods when in an async method
 
             // Write OpenAIPluginManifest to Output folder
             var manifestFile = new FileInfo(Path.Combine(options.OutputFolder, "ai-plugin.json"));
@@ -773,6 +776,8 @@ namespace Microsoft.OpenApi.Hidi
                 throw new ArgumentException("Please input a file path or URL to an OpenApi document.");
             if (string.IsNullOrWhiteSpace(options.OutputFolder))
                 throw new ArgumentException("Please input an output folder path.");
+            if (string.IsNullOrWhiteSpace(options.ApplicationName))
+                throw new ArgumentException("Please input an application name.");
 
             // Load OpenAPI document.
             var document = await GetOpenApi(options, logger, options.MetadataVersion, cancellationToken).ConfigureAwait(false);
@@ -789,8 +794,17 @@ namespace Microsoft.OpenApi.Hidi
                 document = ApplyFilters(options, logger, null, postmanCollection, document);
             }
 
+            if (options.IncludeOpenApiSubset)
+            {
+                // Write OpenAPI subset to Output folder, if requested.
+                _ = Directory.CreateDirectory(options.OutputFolder);
+                options.Output = new(Path.Combine(options.OutputFolder, "openapi-subset.yaml"));
+                options.TerseOutput = true;
+                WriteOpenApi(options, OpenApiFormat.Yaml, OpenApiSpecVersion.OpenApi3_0, document, logger);
+            }
+
             // Create ApiManifest from openApi document.
-            var apiManifest = document.ToApiManifest(options.OpenApi);
+            var apiManifest = document.ToApiManifest(options.OpenApi, options.ApplicationName, options.ApiDependencyName);
 
             // Write ApiManifest to output folder.
             var apiManifestFile = new FileInfo(Path.Combine(options.OutputFolder, "api-manifest.json"));

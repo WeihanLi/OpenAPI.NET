@@ -26,6 +26,9 @@ namespace Microsoft.OpenApi.Hidi.Options
         public LogLevel LogLevel { get; set; }
         public bool InlineLocal { get; set; }
         public bool InlineExternal { get; set; }
+        public string? ApplicationName { get; set; }
+        public string? ApiDependencyName { get; set; }
+        public bool IncludeOpenApiSubset { get; set; }
         public FilterOptions FilterOptions { get; set; } = new();
 
         public HidiOptions(ParseResult parseResult, CommandOptions options)
@@ -53,6 +56,9 @@ namespace Microsoft.OpenApi.Hidi.Options
             LogLevel = parseResult.GetValueForOption(options.LogLevelOption);
             InlineLocal = parseResult.GetValueForOption(options.InlineLocalOption);
             InlineExternal = parseResult.GetValueForOption(options.InlineExternalOption);
+            ApplicationName = parseResult.GetValueForOption(options.ApplicationNameOption);
+            ApiDependencyName = parseResult.GetValueForOption(options.ApiDependencyNameOption);
+            IncludeOpenApiSubset = parseResult.GetValueForOption(options.IncludeOpenApiSubsetOption);
             FilterOptions = new()
             {
                 FilterByOperationIds = parseResult.GetValueForOption(options.FilterByOperationIdsOption),

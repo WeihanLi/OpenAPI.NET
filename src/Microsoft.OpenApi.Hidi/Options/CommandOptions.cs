@@ -27,6 +27,9 @@ namespace Microsoft.OpenApi.Hidi.Options
         public readonly Option<string> ManifestOption = new("--manifest", "Path to API manifest file to locate and filter an OpenApiDocument");
         public readonly Option<bool> InlineLocalOption = new("--inline-local", "Inline local $ref instances");
         public readonly Option<bool> InlineExternalOption = new("--inline-external", "Inline external $ref instances");
+        public readonly Option<string> ApplicationNameOption = new("--application-name", "The name that uniquely identify the application to users of the API Manifest.");
+        public readonly Option<string> ApiDependencyNameOption = new("--api-dependency-name", "The name the api to generate an API Manifest for.");
+        public readonly Option<bool> IncludeOpenApiSubsetOption = new("--include-openapi-subset", "Include the sliced OpenAPI subset in the provided --output-folder.");
 
         public CommandOptions()
         {
@@ -111,8 +114,11 @@ namespace Microsoft.OpenApi.Hidi.Options
             return new List<Option>
             {
                 OpenApiDescriptionOption,
+                ApplicationNameOption,
+                ApiDependencyNameOption,
                 OutputFolderOption,
                 CleanOutputOption,
+                IncludeOpenApiSubsetOption,
                 FilterByOperationIdsOption,
                 FilterByTagsOption,
                 FilterByRequestUrlsOption,
