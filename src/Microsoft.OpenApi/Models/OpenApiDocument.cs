@@ -512,7 +512,7 @@ namespace Microsoft.OpenApi.Models
         /// <summary>
         /// Load the referenced <see cref="IOpenApiReferenceable"/> object from a <see cref="OpenApiReference"/> object
         /// </summary>
-        internal IOpenApiReferenceable ResolveReference(OpenApiReference reference, bool useExternal)
+        internal IOpenApiReferenceable? ResolveReference(OpenApiReference reference, bool useExternal)
         {
             if (reference == null)
             {
@@ -612,8 +612,13 @@ namespace Microsoft.OpenApi.Models
                 throw new OpenApiException(string.Format(Properties.SRResource.InvalidReferenceId, reference.Id));
             }
         }
-
-        ///
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pointer"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public JsonSchema FindSubschema(Json.Pointer.JsonPointer pointer, EvaluationOptions options)
         {
             throw new NotImplementedException();
@@ -622,7 +627,7 @@ namespace Microsoft.OpenApi.Models
 
     internal class FindSchemaReferences : OpenApiVisitorBase
     {
-        private Dictionary<string, JsonSchema> Schemas;
+        private Dictionary<string, JsonSchema>? Schemas;
 
         public static void ResolveSchemas(OpenApiComponents components, Dictionary<string, JsonSchema> schemas)
         {

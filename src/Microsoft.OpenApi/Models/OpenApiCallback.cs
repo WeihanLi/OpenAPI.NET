@@ -28,7 +28,7 @@ namespace Microsoft.OpenApi.Models
         /// <summary>
         /// Reference pointer.
         /// </summary>
-        public OpenApiReference Reference { get; set; }
+        public OpenApiReference? Reference { get; set; }
 
         /// <summary>
         /// This object MAY be extended with Specification Extensions.
@@ -45,10 +45,16 @@ namespace Microsoft.OpenApi.Models
         /// </summary>
         public OpenApiCallback(OpenApiCallback callback)
         {
-            PathItems = callback?.PathItems != null ? new(callback?.PathItems) : null;
-            UnresolvedReference = callback?.UnresolvedReference ?? UnresolvedReference;
-            Reference = callback?.Reference != null ? new(callback?.Reference) : null;
-            Extensions = callback?.Extensions != null ? new Dictionary<string, IOpenApiExtension>(callback.Extensions) : null;
+            if (callback != null)
+            {
+                PathItems = callback.PathItems;
+                UnresolvedReference = callback.UnresolvedReference;
+                if (callback.Reference != null)
+                {
+                    Reference = callback.Reference;
+                }                
+                Extensions = callback.Extensions;
+            }
         }
 
         /// <summary>
@@ -61,11 +67,7 @@ namespace Microsoft.OpenApi.Models
             Utils.CheckArgumentNull(expression);
             Utils.CheckArgumentNull(pathItem);
 
-            if (PathItems == null)
-            {
-                PathItems = new();
-            }
-
+            PathItems ??= new();
             PathItems.Add(expression, pathItem);
         }
 

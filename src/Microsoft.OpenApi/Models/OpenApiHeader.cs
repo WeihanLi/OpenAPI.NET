@@ -29,7 +29,7 @@ namespace Microsoft.OpenApi.Models
         /// <summary>
         /// Reference pointer.
         /// </summary>
-        public OpenApiReference Reference { get; set; }
+        public OpenApiReference? Reference { get; set; }
 
         /// <summary>
         /// A brief description of the header.

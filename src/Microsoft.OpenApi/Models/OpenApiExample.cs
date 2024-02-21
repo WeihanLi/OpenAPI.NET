@@ -18,20 +18,20 @@ namespace Microsoft.OpenApi.Models
         /// <summary>
         /// Short description for the example.
         /// </summary>
-        public virtual string Summary { get; set; }
+        public virtual string? Summary { get; set; }
 
         /// <summary>
         /// Long description for the example.
         /// CommonMark syntax MAY be used for rich text representation.
         /// </summary>
-        public virtual string Description { get; set; }
+        public virtual string? Description { get; set; }
 
         /// <summary>
         /// Embedded literal example. The value field and externalValue field are mutually
         /// exclusive. To represent examples of media types that cannot naturally represented
         /// in JSON or YAML, use a string value to contain the example, escaping where necessary.
         /// </summary>
-        public virtual OpenApiAny Value { get; set; }
+        public virtual OpenApiAny? Value { get; set; }
 
         /// <summary>
         /// A URL that points to the literal example.
@@ -39,7 +39,7 @@ namespace Microsoft.OpenApi.Models
         /// included in JSON or YAML documents.
         /// The value field and externalValue field are mutually exclusive.
         /// </summary>
-        public virtual string ExternalValue { get; set; }
+        public virtual string? ExternalValue { get; set; }
 
         /// <summary>
         /// This object MAY be extended with Specification Extensions.
@@ -49,7 +49,7 @@ namespace Microsoft.OpenApi.Models
         /// <summary>
         /// Reference object.
         /// </summary>
-        public virtual OpenApiReference Reference { get; set; }
+        public virtual OpenApiReference? Reference { get; set; }
 
         /// <summary>
         /// Indicates object is a placeholder reference to an actual object and does not contain valid data.
@@ -66,13 +66,18 @@ namespace Microsoft.OpenApi.Models
         /// </summary>
         public OpenApiExample(OpenApiExample example)
         {
-            Summary = example?.Summary ?? Summary;
-            Description = example?.Description ?? Description;
-            Value = JsonNodeCloneHelper.Clone(example?.Value);
-            ExternalValue = example?.ExternalValue ?? ExternalValue;
-            Extensions = example?.Extensions != null ? new Dictionary<string, IOpenApiExtension>(example.Extensions) : null;
-            Reference = example?.Reference != null ? new(example?.Reference) : null;
-            UnresolvedReference = example?.UnresolvedReference ?? UnresolvedReference;
+            if (example != null)
+            {
+                Summary = example.Summary;
+                Description = example.Description;
+                ExternalValue = example.ExternalValue;
+                Extensions = example.Extensions;
+                if (example.Reference != null)
+                {
+                    Reference = example.Reference;
+                }
+                UnresolvedReference = example.UnresolvedReference;
+            }
         }
 
         /// <summary>
@@ -155,16 +160,28 @@ namespace Microsoft.OpenApi.Models
             writer.WriteStartObject();
 
             // summary
-            writer.WriteProperty(OpenApiConstants.Summary, Summary);
+            if (!string.IsNullOrEmpty(Summary))
+            {
+                writer.WriteProperty(OpenApiConstants.Summary, Summary!);
+            }            
 
             // description
-            writer.WriteProperty(OpenApiConstants.Description, Description);
+            if (!string.IsNullOrEmpty(Description))
+            {
+                writer.WriteProperty(OpenApiConstants.Description, Description!);
+            }
 
             // value
-            writer.WriteOptionalObject(OpenApiConstants.Value, Value, (w, v) => w.WriteAny(v));
+            if (Value != null)
+            {
+                writer.WriteOptionalObject(OpenApiConstants.Value, Value, (w, v) => w.WriteAny(v));
+            }
 
             // externalValue
-            writer.WriteProperty(OpenApiConstants.ExternalValue, ExternalValue);
+            if (ExternalValue != null)
+            {
+                writer.WriteProperty(OpenApiConstants.ExternalValue, ExternalValue);
+            }
 
             // extensions
             writer.WriteExtensions(Extensions, version);

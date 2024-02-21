@@ -84,17 +84,20 @@ namespace Microsoft.OpenApi.Models
         /// </summary>
         public OpenApiComponents(OpenApiComponents components)
         {
-            Schemas = components?.Schemas != null ? new Dictionary<string, JsonSchema>(components.Schemas) : null;
-            Responses = components?.Responses != null ? new Dictionary<string, OpenApiResponse>(components.Responses) : null;
-            Parameters = components?.Parameters != null ? new Dictionary<string, OpenApiParameter>(components.Parameters) : null;
-            Examples = components?.Examples != null ? new Dictionary<string, OpenApiExample>(components.Examples) : null;
-            RequestBodies = components?.RequestBodies != null ? new Dictionary<string, OpenApiRequestBody>(components.RequestBodies) : null;
-            Headers = components?.Headers != null ? new Dictionary<string, OpenApiHeader>(components.Headers) : null;
-            SecuritySchemes = components?.SecuritySchemes != null ? new Dictionary<string, OpenApiSecurityScheme>(components.SecuritySchemes) : null;
-            Links = components?.Links != null ? new Dictionary<string, OpenApiLink>(components.Links) : null;
-            Callbacks = components?.Callbacks != null ? new Dictionary<string, OpenApiCallback>(components.Callbacks) : null;
-            PathItems = components?.PathItems != null ? new Dictionary<string, OpenApiPathItem>(components.PathItems) : null;
-            Extensions = components?.Extensions != null ? new Dictionary<string, IOpenApiExtension>(components.Extensions) : null;
+            if (components != null)
+            {
+                Schemas = components.Schemas;
+                Responses = components.Responses;
+                Parameters = components.Parameters;
+                Examples = components.Examples;
+                RequestBodies = components.RequestBodies;
+                Headers = components.Headers;
+                SecuritySchemes = components.SecuritySchemes;
+                Links = components.Links;
+                Callbacks = components.Callbacks;
+                PathItems = components.PathItems;
+                Extensions = components.Extensions;
+            }            
         }
 
         /// <summary>

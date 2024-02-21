@@ -44,10 +44,13 @@ namespace Microsoft.OpenApi.Models
         /// </summary>
         public OpenApiContact(OpenApiContact contact)
         {
-            Name = contact?.Name ?? Name;
-            Url = contact?.Url != null ? new Uri(contact.Url.OriginalString, UriKind.RelativeOrAbsolute) : null;
-            Email = contact?.Email ?? Email;
-            Extensions = contact?.Extensions != null ? new Dictionary<string, IOpenApiExtension>(contact.Extensions) : null;
+            if (contact != null) 
+            { 
+                Name = contact.Name;
+                Url = contact.Url;
+                Email = contact.Email;
+                Extensions = contact.Extensions;
+            }            
         }
 
         /// <summary>

@@ -19,7 +19,7 @@ namespace Microsoft.OpenApi.Models
         /// The value can be a specific media type (e.g. application/json),
         /// a wildcard media type (e.g. image/*), or a comma-separated list of the two types.
         /// </summary>
-        public string ContentType { get; set; }
+        public string? ContentType { get; set; }
 
         /// <summary>
         /// A map allowing additional information to be provided as headers.
@@ -63,12 +63,15 @@ namespace Microsoft.OpenApi.Models
         /// </summary>
         public OpenApiEncoding(OpenApiEncoding encoding)
         {
-            ContentType = encoding?.ContentType ?? ContentType;
-            Headers = encoding?.Headers != null ? new Dictionary<string, OpenApiHeader>(encoding.Headers) : null;
-            Style = encoding?.Style ?? Style;
-            Explode = encoding?.Explode ?? Explode;
-            AllowReserved = encoding?.AllowReserved ?? AllowReserved;
-            Extensions = encoding?.Extensions != null ? new Dictionary<string, IOpenApiExtension>(encoding.Extensions) : null;
+            if (encoding != null)
+            {
+                ContentType = encoding.ContentType;
+                Headers = encoding.Headers;
+                Style = encoding.Style;
+                Explode = encoding.Explode;
+                AllowReserved = encoding.AllowReserved;
+                Extensions = encoding.Extensions;
+            }
         }
 
         /// <summary>
@@ -100,13 +103,20 @@ namespace Microsoft.OpenApi.Models
             writer.WriteStartObject();
 
             // contentType
-            writer.WriteProperty(OpenApiConstants.ContentType, ContentType);
+            if (!string.IsNullOrEmpty(ContentType)) 
+            {
+                writer.WriteProperty(OpenApiConstants.ContentType, ContentType!);
+            }            
 
             // headers
             writer.WriteOptionalMap(OpenApiConstants.Headers, Headers, callback);
 
             // style
-            writer.WriteProperty(OpenApiConstants.Style, Style?.GetDisplayName());
+            if (!string.IsNullOrEmpty(Style?.GetDisplayName()))
+            {
+                writer.WriteProperty(OpenApiConstants.Style, Style!.GetDisplayName()!);
+
+            }
 
             // explode
             writer.WriteProperty(OpenApiConstants.Explode, Explode, false);

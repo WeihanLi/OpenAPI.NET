@@ -15,7 +15,7 @@ namespace Microsoft.OpenApi.Models
         /// <summary>
         /// REQUIRED. The name of the property in the payload that will hold the discriminator value.
         /// </summary>
-        public string PropertyName { get; set; }
+        public string? PropertyName { get; set; }
 
         /// <summary>
         /// An object to hold mappings between payload values and schema names or references.
@@ -37,9 +37,13 @@ namespace Microsoft.OpenApi.Models
         /// </summary>
         public OpenApiDiscriminator(OpenApiDiscriminator discriminator)
         {
-            PropertyName = discriminator?.PropertyName ?? PropertyName;
-            Mapping = discriminator?.Mapping != null ? new Dictionary<string, string>(discriminator.Mapping) : null;
-            Extensions = discriminator?.Extensions != null ? new Dictionary<string, IOpenApiExtension>(discriminator.Extensions) : null;
+            if (discriminator != null)
+            {
+                PropertyName = discriminator.PropertyName;
+                Mapping = discriminator.Mapping;
+                Extensions = discriminator.Extensions;
+                PropertyName = discriminator.PropertyName;
+            }            
         }
 
         /// <summary>
@@ -77,7 +81,10 @@ namespace Microsoft.OpenApi.Models
             writer.WriteStartObject();
 
             // propertyName
-            writer.WriteProperty(OpenApiConstants.PropertyName, PropertyName);
+            if (!string.IsNullOrEmpty(PropertyName))
+            {
+                writer.WriteProperty(OpenApiConstants.PropertyName, PropertyName!);
+            }
 
             // mapping
             writer.WriteOptionalMap(OpenApiConstants.Mapping, Mapping, (w, s) => w.WriteValue(s));
