@@ -17,7 +17,7 @@ namespace Microsoft.OpenApi.Models
         /// <summary>
         /// A Path Item Object used to define a callback request and expected responses.
         /// </summary>
-        public virtual Dictionary<RuntimeExpression, OpenApiPathItem> PathItems { get; set; }
+        public virtual Dictionary<RuntimeExpression, OpenApiPathItem>? PathItems { get; set; }
             = new();
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Microsoft.OpenApi.Models
         /// <summary>
         /// This object MAY be extended with Specification Extensions.
         /// </summary>
-        public virtual IDictionary<string, IOpenApiExtension> Extensions { get; set; } = new Dictionary<string, IOpenApiExtension>();
+        public virtual IDictionary<string, IOpenApiExtension>? Extensions { get; set; } = new Dictionary<string, IOpenApiExtension>();
 
         /// <summary>
         /// Parameter-less constructor
@@ -45,16 +45,10 @@ namespace Microsoft.OpenApi.Models
         /// </summary>
         public OpenApiCallback(OpenApiCallback callback)
         {
-            if (callback != null)
-            {
-                PathItems = callback.PathItems;
-                UnresolvedReference = callback.UnresolvedReference;
-                if (callback.Reference != null)
-                {
-                    Reference = callback.Reference;
-                }                
-                Extensions = callback.Extensions;
-            }
+            PathItems = callback?.PathItems != null ? new(callback?.PathItems) : null;
+            UnresolvedReference = callback?.UnresolvedReference ?? UnresolvedReference;
+            Reference = callback?.Reference != null ? new(callback?.Reference) : null;
+            Extensions = callback?.Extensions != null ? new Dictionary<string, IOpenApiExtension>(callback.Extensions) : null;
         }
 
         /// <summary>

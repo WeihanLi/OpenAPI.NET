@@ -23,7 +23,7 @@ namespace Microsoft.OpenApi.Models
         /// <summary>
         /// REQUIRED. The URL for the target documentation. Value MUST be in the format of a URL.
         /// </summary>
-        public Uri Url { get; set; } = new Uri(DefaultUrl);
+        public Uri Url { get; set; }
 
         /// <summary>
         /// This object MAY be extended with Specification Extensions.
