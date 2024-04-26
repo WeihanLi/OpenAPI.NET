@@ -494,7 +494,7 @@ namespace Microsoft.OpenApi.Models
                 string externalUri = referenceUri.OriginalString.Split(pound).First();
                 Uri externalDocId = Workspace.GetDocumentId(externalUri);
                 string relativePath = referenceUri.OriginalString.Split(pound).Last();
-                uriLocation = externalDocId + relativePath;                
+                uriLocation = externalDocId + relativePath;
             }
             else
             {

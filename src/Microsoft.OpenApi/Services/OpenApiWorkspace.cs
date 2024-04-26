@@ -70,6 +70,8 @@ namespace Microsoft.OpenApi.Services
                 if (!_jsonSchemaRegistry.ContainsKey(uri))
                 {
                     _jsonSchemaRegistry[uri] = schema;
+                    //schema.BaseUri = uri;
+                    //SchemaRegistry.Global.Register(schema);
                     return true;
                 }
             }
@@ -161,6 +163,11 @@ namespace Microsoft.OpenApi.Services
         private Uri ToLocationUrl(string location)
         {
             return new(BaseUrl, location);
+        }
+
+        internal Dictionary<Uri, IBaseDocument> GetSchemaRegistry()
+        {
+            return _jsonSchemaRegistry;
         }
     }
 }
