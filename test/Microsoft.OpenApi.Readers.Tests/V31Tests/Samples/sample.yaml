@@ -1,0 +1,156 @@
+openapi: 3.1.0
+info:
+  title: Sample OpenAPI 3.1 API
+  description: A sample API demonstrating OpenAPI 3.1 features
+  version: "2.0.0"
+  summary: Sample OpenAPI 3.1 API with the latest features
+# JSON Schema 2020-12 features
+jsonSchemaDialect: "https://json-schema.org/draft/2020-12/schema"
+
+servers:
+  - url: https://api.example.com/v2
+    description: Main production server
+
+# Example Webhooks (OpenAPI 3.1 feature)
+webhooks:
+  newPetAlert:
+    post:
+      summary: Notify about a new pet being added
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pet'
+      responses:
+        '200':
+          description: Webhook processed successfully
+paths:
+  /pets:
+    get:
+      summary: List all pets
+      operationId: listPets
+      tags:
+        - pets
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at one time (max 100)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: A paged array of pets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pets'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new pet
+      operationId: createPet
+      tags:
+        - pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPet'
+      responses:
+        '201':
+          description: Pet created successfully
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /pets/{petId}:
+    get:
+      summary: Get details of a specific pet
+      operationId: getPet
+      tags:
+        - pets
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          description: The ID of the pet to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pet details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Pet:
+      type: object
+      required:
+        - id
+        - weight
+      properties:
+        id:
+          type: string
+          format: uuid
+        weight:
+          type: number
+          exclusiveMinimum: 0
+          description: Weight of the pet in kilograms
+        # Pattern properties and Type array feature from JSON Schema
+        attributes:
+          type: [ object, "null"]
+          description: Dynamic attributes for the pet
+          patternProperties:
+            "^attr_[A-Za-z]+$":
+              type: string
+      $comment: "This schema represents a pet in the system."
+      $defs:
+        ExtraInfo:
+          type: string
+
+    NewPet:
+      allOf:
+        - $ref: '#/components/schemas/Pet'
+        - description: A pet to be added to the store
+        - required:
+            - id
+
+    Pets:
+      type: array
+      items:
+        $ref: '#/components/schemas/Pet'
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+
+security:
+  - api_key: []
+
+tags:
+  - name: pets
+    description: Everything about your pets
